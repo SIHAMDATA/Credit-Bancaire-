@@ -1,0 +1,30 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv/
+.venv/
+env/
+ENV/
+venv/
+.Python
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# MacOS archives
+__MACOSX/
+
+# IDEs
+.vscode/
+.idea/

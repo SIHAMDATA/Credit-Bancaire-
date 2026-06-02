@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import pandas as pd
@@ -8,7 +10,6 @@ import os
 import re
 import hashlib
 from datetime import datetime, timedelta
-import ollama
 from NLP import predict_credit, explain_credit, model
 
 # Change working directory to script location
@@ -556,7 +557,35 @@ def confirm_contact(request: ConfirmContactRequest):
     }
 
 
+# Serve frontend static files
+frontend_path = os.path.join(os.path.dirname(__file__), 'frontend')
+if os.path.exists(frontend_path):
+    @app.get("/{path_name:path}")
+    async def serve_frontend(path_name: str):
+        """Serve frontend files, fallback to index.html for SPA routing"""
+        file_path = os.path.join(frontend_path, path_name)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        # Fallback to index.html for single-page app routing
+        index_path = os.path.join(frontend_path, 'index.html')
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Also mount the frontend directory as static files
+    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+
+    @app.get("/")
+    async def root():
+        """Serve index.html at root"""
+        index_path = os.path.join(frontend_path, 'index.html')
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+        raise HTTPException(status_code=404, detail="index.html not found")
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8002)
+    port = int(os.environ.get("PORT", "8002"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
